@@ -42,22 +42,12 @@
     register: saved_def_config
     tags: postgres_deploy
 
-  - name: Remove old files foo
-    file:
-      path: /etc/postgresql/{{postgresql.version}}/main/{{ item }}
-      state: absent
-    with_items:
-      #- postgresql.conf
-      - pg_hba.conf
-    when: saved_def_config.changed
-    tags: postgres_deploy
-
   - name: Copy DB config
     template:
       src: "{{ item }}.j2"
       dest: /etc/postgresql/{{postgresql.version}}/main/{{ item }}
     with_items:
-      # - postgresql.conf
+      - postgresql.conf
       - pg_hba.conf
       - postgresql.auto.conf
     register: update_config
