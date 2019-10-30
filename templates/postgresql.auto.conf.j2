@@ -1,0 +1,35 @@
+# from pgtune:
+# https://pgtune.leopard.in.ua/#/
+
+# DB Version: 11
+# OS Type: linux
+# DB Type: web
+# Total Memory (RAM): 1 GB
+# CPUs num: 1
+# Connections num: 100
+# Data Storage: hdd
+
+ALTER SYSTEM SET
+ max_connections = '100';
+ALTER SYSTEM SET
+ shared_buffers = '256MB';
+ALTER SYSTEM SET
+ effective_cache_size = '768MB';
+ALTER SYSTEM SET
+ maintenance_work_mem = '64MB';
+ALTER SYSTEM SET
+ checkpoint_completion_target = '0.7';
+ALTER SYSTEM SET
+ wal_buffers = '7864kB';
+ALTER SYSTEM SET
+ default_statistics_target = '100';
+ALTER SYSTEM SET
+ random_page_cost = '4';
+ALTER SYSTEM SET
+ effective_io_concurrency = '2';
+ALTER SYSTEM SET
+ work_mem = '1310kB';
+ALTER SYSTEM SET
+ min_wal_size = '1GB';
+ALTER SYSTEM SET
+ max_wal_size = '2GB';

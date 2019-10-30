@@ -1,9 +1,8 @@
 ---
   postgresql:
-    version: "9.5"
-    db_name: database
-    db_user: user
+    version: "11"
+    create_db: no
+    db_name: test_db
+    create_user: no
+    db_user: test_user
     db_password: QWErty123
-
-
-

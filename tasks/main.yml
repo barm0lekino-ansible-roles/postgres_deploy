@@ -1,16 +1,16 @@
 ---
-  - name: Add PostgreSQL official APT repository
-    apt_repository:
-      repo: "deb http://apt.postgresql.org/pub/repos/apt/ {{ansible_distribution_release}}-pgdg main"
-      # repo: "deb http://apt.postgresql.org/pub/repos/apt/ xenial-pgdg main" #deb http://apt.postgresql.org/pub/repos/apt/ bionic-pgdg main
-      state: present
-    tags: repo, postgres_deploy
-
   - name: Adding APT repository key
     become: yes
     apt_key:
       id: ACCC4CF8
       url: https://www.postgresql.org/media/keys/ACCC4CF8.asc
+    tags: repo, postgres_deploy
+
+  - name: Add PostgreSQL official APT repository
+    apt_repository:
+      repo: "deb http://apt.postgresql.org/pub/repos/apt/ {{ansible_distribution_release}}-pgdg main"
+      # repo: "deb http://apt.postgresql.org/pub/repos/apt/ xenial-pgdg main" #deb http://apt.postgresql.org/pub/repos/apt/ bionic-pgdg main
+      state: present
     tags: repo, postgres_deploy
 
   - name: Install Postgresql
@@ -24,22 +24,61 @@
       - "postgresql-{{ postgresql.version }}"
     tags: postgres_deploy
 
-  - name: Copy DB config
-    template:
-      src: pg_hba.conf.j2
-      dest: /etc/postgresql/{{postgresql.version}}/main/pg_hba.conf
-    tags: postgres_deploy
-
   - name: Start PostgreSQL service
     service:
       name: postgresql
+      state: started
+    tags: postgres_deploy
+
+  - name: Save default config files
+    copy:
+      src: /etc/postgresql/{{postgresql.version}}/main/{{ item }}
+      dest: /etc/postgresql/{{postgresql.version}}/main/{{ item }}_old
+      remote_src: yes
+      force: no
+    with_items:
+      - postgresql.conf
+      - pg_hba.conf
+    register: saved_def_config
+    tags: postgres_deploy
+
+  - name: Remove old files foo
+    file:
+      path: /etc/postgresql/{{postgresql.version}}/main/{{ item }}
+      state: absent
+    with_items:
+      #- postgresql.conf
+      - pg_hba.conf
+    when: saved_def_config.changed
+    tags: postgres_deploy
+
+  - name: Copy DB config
+    template:
+      src: "{{ item }}.j2"
+      dest: /etc/postgresql/{{postgresql.version}}/main/{{ item }}
+    with_items:
+      # - postgresql.conf
+      - pg_hba.conf
+      - postgresql.auto.conf
+    register: update_config
+    tags: postgres_deploy
+
+  #- debug: var=update_config
+  #  tags: postgres_deploy
+
+  # Если изменился конфиг, перезапускаем службу
+  - name: Restart PostgreSQL service
+    service:
+      name: postgresql
       state: restarted
+    when: update_config.changed
     tags: postgres_deploy
 
   - name: Create a new database with name {{ item }}
     postgresql_db:
       name: "{{ item }}"
       state: present
+    when: postgresql.create_db
     with_items:
       - "{{ postgresql.db_name }}"
     tags: postgres_deploy
@@ -51,6 +90,7 @@
       password: "{{ postgresql.db_password }}"
       priv: "ALL"
       role_attr_flags: CREATEDB
+    when: postgresql.create_user and postgresql.create_db
     with_items:
       - "{{ postgresql.db_name }}"
     notify: Restart postgress
