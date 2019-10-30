@@ -1,4 +1,9 @@
 ---
-  postgresql_version: 10
+  postgresql:
+    version: "9.5"
+    db_name: database
+    db_user: user
+    db_password: QWErty123
+
 
 

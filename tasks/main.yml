@@ -4,14 +4,14 @@
       repo: "deb http://apt.postgresql.org/pub/repos/apt/ {{ansible_distribution_release}}-pgdg main"
       # repo: "deb http://apt.postgresql.org/pub/repos/apt/ xenial-pgdg main" #deb http://apt.postgresql.org/pub/repos/apt/ bionic-pgdg main
       state: present
-    tags: ["repo", "postgres_deploy"]
+    tags: repo, postgres_deploy
 
   - name: Adding APT repository key
     become: yes
     apt_key:
       id: ACCC4CF8
       url: https://www.postgresql.org/media/keys/ACCC4CF8.asc
-    tags: ["repo", "postgres_deploy"]
+    tags: repo, postgres_deploy
 
   - name: Install Postgresql
     package:
@@ -21,62 +21,37 @@
     with_items:
       - libpq-dev
       - python-psycopg2
-      - postgresql-{{postgresql_version}}
-    tags: ["packages", "postgres_deploy"]
+      - "postgresql-{{ postgresql.version }}"
+    tags: postgres_deploy
 
   - name: Copy DB config
-    copy:
-      src: ../source/db/pg_hba.conf
-      dest: /etc/postgresql/10/main/pg_hba.conf
-    tags: ["postgres_deploy"]
+    template:
+      src: pg_hba.conf.j2
+      dest: /etc/postgresql/{{postgresql.version}}/main/pg_hba.conf
+    tags: postgres_deploy
 
-#  - name: Set postgres user password
-#    postgresql_user:
-#      user: postgres
-#      password: "QWErty123"
-#    tags: ["postgres_deploy"]
-
-  - name: Restart PostgreSQL service
+  - name: Start PostgreSQL service
     service:
       name: postgresql
       state: restarted
-    tags: ["postgres_deploy"]
+    tags: postgres_deploy
 
-  - name: Copy DB dump
-    copy:
-      src: ../source/db/
-      dest: /opt/ubershop/bd_dump/
-    tags: ["postgres_deploy"]
-
-  - name: Drop database with name "ubershop"
+  - name: Create a new database with name {{ item }}
     postgresql_db:
-      name: ubershop
-      state: absent
-    tags: ["postgres_deploy", "create_db"]
-
-  - name: Create a new database with name "ubershop"
-    postgresql_db:
-      name: ubershop
+      name: "{{ item }}"
       state: present
-    tags: ["postgres_deploy", "create_db"]
+    with_items:
+      - "{{ postgresql.db_name }}"
+    tags: postgres_deploy
 
-  - name: Restore BD from file
-    postgresql_db:
-      name: ubershop
-      state: restore
-      target: /opt/ubershop/bd_dump/ub.dump
-      #target_opts: "-Fc"
-      #login_user: "postgres"
-      #login_password: "QWErty123"
-    notify: Restart postgress
-    tags: ["postgres_deploy", "postgres_restore"]
-
-  - name: Connect to database, create api user, and grant access
+  - name: Create user {{ db_user }}, and grant access
     postgresql_user:
-      db: ubershop
-      name: api
-      password: QWErty123
-      #priv: "CONNECT/products:ALL"
+      db: "{{ item }}"
+      name: "{{ postgresql.db_user }}"
+      password: "{{ postgresql.db_password }}"
+      priv: "ALL"
       role_attr_flags: CREATEDB
+    with_items:
+      - "{{ postgresql.db_name }}"
     notify: Restart postgress
-    tags: ["postgres_deploy"]
+    tags: postgres_deploy
