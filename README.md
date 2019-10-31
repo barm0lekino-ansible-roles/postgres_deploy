@@ -1,13 +1,14 @@
 Role Name
 =========
 
-postgres_deploy  простая роль для установки PotgresSQL
+barm0leykin.postgres_deploy  простая роль для установки PotgresSQL
 
 Example Playbook
 ----------------
 
 Пример плейбука:
 
+```
 - hosts: localhost
   remote_user: root
   vars:
@@ -20,6 +21,7 @@ Example Playbook
         db_password: QWErty123
   roles:
     - postgres_deploy
+```
 
 Тут всё просто. Версия СУБД, создавать или нет базу, создавать или нет юзера, пароль для этого юзера.
 

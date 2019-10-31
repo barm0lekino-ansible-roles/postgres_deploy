@@ -75,13 +75,14 @@
 
   - name: Create user {{ db_user }}, and grant access
     postgresql_user:
-      db: "{{ item }}"
-      name: "{{ postgresql.db_user }}"
+      db: "{{ item[0] }}"
+      name: "{{ item[1] }}"
       password: "{{ postgresql.db_password }}"
       priv: "ALL"
       role_attr_flags: CREATEDB
     when: postgresql.create_user and postgresql.create_db
-    with_items:
+    with_nested:
       - "{{ postgresql.db_name }}"
+      - "{{ postgresql.db_user }}"
     notify: Restart postgress
-    tags: postgres_deploy
+    tags: postgres_deploy, test

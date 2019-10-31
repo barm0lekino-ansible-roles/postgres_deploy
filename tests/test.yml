@@ -5,9 +5,13 @@
     - postgresql:
         version: "11"
         create_db: yes
-        db_name: test_db
+        db_name:
+          - test_db1
+          - test_db2
         create_user: yes
-        db_user: test_user
+        db_user:
+          - test_user
+          - test_admin
         db_password: QWErty123
   roles:
     - postgres_deploy
