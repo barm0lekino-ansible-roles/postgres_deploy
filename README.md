@@ -14,16 +14,21 @@ Example Playbook
   vars:
     - postgresql:
         version: "11"
-        create_db: yes
-        db_name: test_db
-        create_user: yes
-        db_user: test_user
+        db_name:
+          - test_db
+          - test_db2
+        create_user: no
+        db_user:
+          - test_user
+          - test_admin
         db_password: QWErty123
   roles:
     - postgres_deploy
 ```
 
-Тут всё просто. Версия СУБД, создавать или нет базу, создавать или нет юзера, пароль для этого юзера.
+Тут всё просто. Версия СУБД, создавать или нет базы, создавать или нет юзеров, пароль для юзера.
+
+Пока что пароль одинаковый. И у всех юзеров полные права, может быть позже переделаю.
 
 License
 -------
