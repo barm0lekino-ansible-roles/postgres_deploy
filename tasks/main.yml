@@ -47,7 +47,7 @@
       src: "{{ item }}.j2"
       dest: /etc/postgresql/{{postgresql.version}}/main/{{ item }}
     with_items:
-      - postgresql.conf
+      #- postgresql.conf
       - pg_hba.conf
       - postgresql.auto.conf
     register: update_config

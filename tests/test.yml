@@ -1,0 +1,13 @@
+---
+- hosts: localhost
+  remote_user: root
+  vars:
+    - postgresql:
+        version: "11"
+        create_db: yes
+        db_name: test_db
+        create_user: yes
+        db_user: test_user
+        db_password: QWErty123
+  roles:
+    - postgres_deploy
